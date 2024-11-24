@@ -85,9 +85,9 @@ scoop = 1; //[0:0.1:1]
 // only cut magnet/screw holes at the corners of the bin to save uneccesary print time
 only_corners = false;
 //Use gridfinity refined hole style. Not compatible with magnet_holes!
-refined_holes = true;
+refined_holes = false;
 // Base will have holes for 6mm Diameter x 2mm high magnets.
-magnet_holes = false;
+magnet_holes = true;
 // Base will have holes for M3 screws.
 screw_holes = false;
 // Magnet holes will have crush ribs to hold the magnet.
@@ -99,11 +99,23 @@ printable_hole_top = true;
 // Enable "gridfinity-refined" thumbscrew hole in the center of each base: https://www.printables.com/model/413761-gridfinity-refined
 enable_thumbscrew = false;
 
+/* [Brim Options] */
+// Add a brim to corners to increase bed adhesion
+brim = true;
+// Brim height (usually matches printer layer height)
+brim_height = 0.2;
+// Distance brim extends outward
+brim_size = 13;
+// Controls the positioning of the brim. Combined with brim_size allows full control of brim area.
+brim_origin_x = 10;
+brim_origin_y = 10;
+
 hole_options = bundle_hole_options(refined_holes, magnet_holes, screw_holes, crush_ribs, chamfer_holes, printable_hole_top);
+brim_options = bundle_brim_options(brim, brim_height, brim_size, brim_origin_x, brim_origin_y);
 
 // ===== IMPLEMENTATION ===== //
 
-color("tomato") {
+color("green") {
 gridfinityInit(gridx, gridy, height(gridz, gridz_define, style_lip, enable_zsnap), height_internal, sl=style_lip) {
 
     if (divx > 0 && divy > 0) {
@@ -115,7 +127,7 @@ gridfinityInit(gridx, gridy, height(gridz, gridz_define, style_lip, enable_zsnap
         cutCylinders(n_divx=cdivx, n_divy=cdivy, cylinder_diameter=cd, cylinder_height=ch, coutout_depth=c_depth, orientation=c_orientation, chamfer=c_chamfer);
     }
 }
-gridfinityBase([gridx, gridy], hole_options=hole_options, only_corners=only_corners, thumbscrew=enable_thumbscrew);
+gridfinityBase([gridx, gridy], hole_options=hole_options, only_corners=only_corners, thumbscrew=enable_thumbscrew, brim_options=brim_options);
 }
 
 

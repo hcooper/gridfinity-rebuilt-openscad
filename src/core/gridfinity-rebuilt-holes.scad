@@ -226,6 +226,21 @@ module screw_hole(radius, height, supportless=false, chamfer_radius=0, chamfer_a
 }
 
 /**
+ * @brief Create an options list used to configure brims.
+ * @param brim Enable brim
+ * @param brim_height Height of brim, usually matches layer height
+ * @param brim_diameter 
+ */
+function bundle_brim_options(brim=false, brim_height=0, brim_size=0, brim_origin_x=0, brim_origin_y=0) =
+    assert(
+        is_bool(brim) &&
+        is_num(brim_height) &&
+        is_num(brim_size) &&
+        is_num(brim_origin_x) &&
+        is_num(brim_origin_y))
+    [brim, brim_height, brim_size, brim_origin_x, brim_origin_y];
+
+/**
  * @brief Create an options list used to configure bin holes.
  * @param refined_hole Use gridfinity refined hole type.  Not compatible with "magnet_hole".
  * @param magnet_hole Create a hole for a 6mm magnet.

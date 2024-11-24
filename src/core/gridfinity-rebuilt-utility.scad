@@ -222,7 +222,7 @@ module cut_move(x, y, w, h) {
  * @param grid_dimensions [length, width] of a single Gridfinity base.
  * @param thumbscrew Enable "gridfinity-refined" thumbscrew hole in the center of each base unit. This is a ISO Metric Profile, 15.0mm size, M15x1.5 designation.
  */
-module gridfinityBase(grid_size, grid_dimensions=GRID_DIMENSIONS_MM, hole_options=bundle_hole_options(), off=0, final_cut=true, only_corners=false, thumbscrew=false) {
+module gridfinityBase(grid_size, grid_dimensions=GRID_DIMENSIONS_MM, hole_options=bundle_hole_options(), off=0, final_cut=true, only_corners=false, thumbscrew=false, brim_options=bundle_brim_options()) {
     assert(is_list(grid_dimensions) && len(grid_dimensions) == 2 &&
         grid_dimensions.x > 0 && grid_dimensions.y > 0);
     assert(is_list(grid_size) && len(grid_size) == 2 &&
@@ -267,7 +267,7 @@ module gridfinityBase(grid_size, grid_dimensions=GRID_DIMENSIONS_MM, hole_option
     if(only_corners) {
         difference(){
             pattern_linear(final_grid_size.x, final_grid_size.y, base_center_distance_mm.x, base_center_distance_mm.y) {
-                base_solid(individual_base_size_mm);
+                base_solid(brim_options, top_dimensions=individual_base_size_mm);
             }
 
             if(thumbscrew) {
@@ -283,7 +283,7 @@ module gridfinityBase(grid_size, grid_dimensions=GRID_DIMENSIONS_MM, hole_option
     }
     else {
         pattern_linear(final_grid_size.x, final_grid_size.y, base_center_distance_mm.x, base_center_distance_mm.y)
-        block_base(hole_options, off, individual_base_size_mm, thumbscrew=thumbscrew);
+        block_base(hole_options, brim_options, off, individual_base_size_mm, thumbscrew=thumbscrew);
     }
 }
 
@@ -368,7 +368,7 @@ module base_polygon() {
  * @brief A single solid Gridfinity base.
  * @param top_dimensions [x, y] size of a single base.  Only set if deviating from the standard!
  */
-module base_solid(top_dimensions=BASE_TOP_DIMENSIONS) {
+module base_solid(brim_options, top_dimensions=BASE_TOP_DIMENSIONS, ) {
     assert(is_list(top_dimensions) && len(top_dimensions) == 2);
 
     base_bottom = base_bottom_dimensions(top_dimensions);
@@ -385,6 +385,17 @@ module base_solid(top_dimensions=BASE_TOP_DIMENSIONS) {
 
         translate([0, 0, BASE_HEIGHT/2])
         cube([cube_size.x, cube_size.y, BASE_HEIGHT], center=true);
+
+        echo(brim_options);
+        print_brim=brim_options[0];
+        brim_height=brim_options[1];
+        brim_size=brim_options[2];
+        brim_origin_x=brim_options[3];
+        brim_origin_y=brim_options[4];
+
+        if (print_brim) {
+            brim(brim_origin_x=brim_origin_x, brim_origin_y=brim_origin_y, brim_height=brim_height, brim_size=brim_size);
+        }
     }
 }
 
@@ -429,15 +440,16 @@ module _base_holes(hole_options, offset=0, top_dimensions=BASE_TOP_DIMENSIONS) {
  * @param offset Grows or shrinks the final shapes.  Similar to `scale`, but in mm.
  * @param top_dimensions [x, y] size of a single base.  Only set if deviating from the standard!
  * @param thumbscrew Enable "gridfinity-refined" thumbscrew hole in the center of each base unit. This is a ISO Metric Profile, 15.0mm size, M15x1.5 designation.
+ * @param brim_options brim_options
  */
-module block_base(hole_options, offset=0, top_dimensions=BASE_TOP_DIMENSIONS, thumbscrew=false) {
+module block_base(hole_options, brim_options, offset=0, top_dimensions=BASE_TOP_DIMENSIONS, thumbscrew=false, ) {
     assert(is_list(top_dimensions) && len(top_dimensions) == 2);
     assert(is_bool(thumbscrew));
 
     base_bottom = base_bottom_dimensions(top_dimensions);
 
     difference() {
-        base_solid(top_dimensions);
+        base_solid(brim_options, top_dimensions=top_dimensions);
 
         if (thumbscrew) {
             _base_thumbscrew();
@@ -754,4 +766,12 @@ module profile_cutter_tab(h, tab, ang) {
         offset(delta = r_f2)
         polygon([[0,h],[tab,h],[0,h-tab*tan(ang)]]);
 
+}
+
+module brim(brim_origin_x=10, brim_origin_y=10, brim_height=0.2, brim_size=13) {
+    linear_extrude(brim_height)
+    pattern_circular(2)
+    copy_mirror()
+    translate([brim_origin_x, brim_origin_y])
+    rounded_square(brim_size,2);
 }
